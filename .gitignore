@@ -1,0 +1,7 @@
+compiler_bin
+lex.yy.c
+parser.tab.c
+parser.tab.h
+__pycache__/
+*.pyc
+*.o

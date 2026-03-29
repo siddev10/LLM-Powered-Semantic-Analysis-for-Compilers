@@ -1,0 +1,40 @@
+// LLM Compiler test program
+// Tests: declarations, arithmetic, control flow, functions
+
+func int factorial(int n) {
+    if (n <= 1) {
+        return 1;
+    }
+    return n * factorial(n - 1);
+}
+
+func float average(int a, int b) {
+    float sum = a + b;
+    float result = sum / 2;
+    return result;
+}
+
+int main_val = 10;
+int count = 0;
+float ratio = 3.14;
+int total = 0;
+int i = 0;
+
+while (i < main_val) {
+    total = total + i;
+    i = i + 1;
+}
+
+print(total);
+
+if (total > 40) {
+    bool flag = true;
+    print(factorial(5));
+} else {
+    print(0);
+}
+
+string unused_msg = "hello";
+
+bool valid = (count == 0) && (ratio > 0);
+print(valid);
