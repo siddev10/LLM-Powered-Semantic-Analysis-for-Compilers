@@ -1,23 +1,15 @@
-# LLM-Powered Semantic Compiler
-### Flex + Bison + Python + LLM (Anthropic API)
+# LLM-Powered Semantic Analysis for Compilers
+### Flex + Bison + Python + LLM (Groq / Gemini / Claude)
 
 A complete compiler pipeline combining classical compiler theory (lexing, parsing,
 type-checking) with LLM-powered deep semantic analysis.
 
 ## Architecture
 
-```
-Source (.src)
-    ▼
-[Flex Lexer] ──tokens──► [Bison Parser] ──AST (JSON)──►
-                                                        [Python Orchestrator]
-                                                           ├─ Symbol Table
-                                                           ├─ Type Checker
-                                                           ├─ LLM Engine
-                                                           └─ IR Generator
-                                                                    ▼
-                                                          Report + IR output
-```
+![Compiler Architecture](architecture.png)
+
+The pipeline flows from source code → Flex Lexer → Bison Parser → Python Orchestrator
+(Symbol Table → Type Checker → LLM Semantic Engine → IR Generator) → Output.
 
 ## Files
 
@@ -45,12 +37,18 @@ Source (.src)
 ## Build & Run
 
 ```bash
-# Prerequisites: flex, bison, gcc, python3
-make                                  # compile Flex/Bison binary
+# Prerequisites: flex, bison, gcc, python3, pip3
+make                                   # compile Flex/Bison binary
 
-export ANTHROPIC_API_KEY=sk-ant-...   # required for LLM stage
-python3 compiler.py test.src          # run on sample program
-python3 compiler.py my_program.src    # run on your own file
+# Set ONE of these API keys (Groq is free and recommended)
+export GROQ_API_KEY=gsk_...            # free — console.groq.com
+export GEMINI_API_KEY=AIzaSy...        # free — aistudio.google.com
+export ANTHROPIC_API_KEY=sk-ant-...    # paid — console.anthropic.com
+
+pip3 install requests                  # install HTTP library
+
+python3 compiler.py test.src           # run on sample program
+python3 compiler.py my_program.src     # run on your own file
 ```
 
 ## Pipeline Stages
@@ -70,16 +68,18 @@ single `{"type":"Program","body":[...]}` document written to stdout.
 - Assignment type-mismatch detection
 - Unused-variable warnings
 
-### 4 — LLM Semantic Analysis (Claude via Anthropic API)
-Sends AST + type-checker results to Claude. The model reasons about:
+### 4 — LLM Semantic Analysis (Groq / Gemini / Claude)
+Supports three backends — auto-selected based on which API key is set:
+- **Groq** (free) — set `GROQ_API_KEY` at console.groq.com
+- **Gemini** (free) — set `GEMINI_API_KEY` at aistudio.google.com
+- **Claude** (paid) — set `ANTHROPIC_API_KEY` at console.anthropic.com
+
+The LLM reasons about:
 - Semantic errors missed by the rule-based pass
 - Logic bugs (off-by-one, dead code, unreachable branches)
 - Code quality (naming, style, runtime risks)
 - Optimisation hints (constant folding, loop invariants)
 - Overall verdict: `PASS` / `WARNINGS` / `FAIL`
-
-The parser uses three fallback strategies to extract JSON from the
-response even when Claude wraps it in markdown fences.
 
 ### 5 — IR Code Generator
 Produces simple 3-address IR:
