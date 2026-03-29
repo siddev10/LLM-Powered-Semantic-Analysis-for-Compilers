@@ -1,5 +1,5 @@
 # LLM-Powered Semantic Compiler
-### Flex + Bison + Python + Claude (Anthropic API)
+### Flex + Bison + Python + LLM (Anthropic API)
 
 A complete compiler pipeline combining classical compiler theory (lexing, parsing,
 type-checking) with LLM-powered deep semantic analysis.
@@ -13,7 +13,7 @@ Source (.src)
                                                         [Python Orchestrator]
                                                            ├─ Symbol Table
                                                            ├─ Type Checker
-                                                           ├─ Claude LLM Engine
+                                                           ├─ LLM Engine
                                                            └─ IR Generator
                                                                     ▼
                                                           Report + IR output
