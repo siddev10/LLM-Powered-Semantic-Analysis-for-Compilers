@@ -1,0 +1,23 @@
+.status-bar {
+  position: relative; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 16px; height: 25px;
+  background: rgba(13, 13, 20, 0.9);
+  border-top: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+}
+.status-left, .status-center, .status-right {
+  display: flex; align-items: center; gap: 14px;
+}
+.status-item {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 11px; color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+.status-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--text-muted);
+}
+.status-dot.pass     { background: var(--success); }
+.status-dot.fail     { background: var(--error); }
+.status-dot.warnings { background: var(--warning); }

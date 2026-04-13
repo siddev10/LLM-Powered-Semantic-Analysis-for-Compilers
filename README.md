@@ -13,13 +13,13 @@ The pipeline flows from source code → Flex Lexer → Bison Parser → Python O
 
 ## Files
 
-| File          | Description |
-|---------------|-------------|
-| `lexer.l`     | Flex rules — tokenises source into INT, FLOAT, ID, operators |
-| `parser.y`    | Bison grammar — 40+ rules, emits full JSON AST |
-| `compiler.py` | Python orchestrator — type checker, LLM analysis, IR generator |
-| `Makefile`    | Builds the Flex/Bison C binary |
-| `test.src`    | Sample source program |
+| File                  | Description |
+|-----------------------|-------------|
+| `backend/lexer.l`     | Flex rules — tokenises source into INT, FLOAT, ID, operators |
+| `backend/parser.y`    | Bison grammar — 40+ rules, emits full JSON AST |
+| `backend/compiler.py` | Python orchestrator — type checker, LLM analysis, IR generator |
+| `backend/Makefile`    | Builds the Flex/Bison C binary |
+| `backend/test.src`    | Sample source program |
 
 ## Language Features
 
@@ -38,6 +38,7 @@ The pipeline flows from source code → Flex Lexer → Bison Parser → Python O
 
 ```bash
 # Prerequisites: flex, bison, gcc, python3, pip3
+cd backend
 make                                   # compile Flex/Bison binary
 
 # Set ONE of these API keys (Groq is free and recommended)
@@ -45,7 +46,7 @@ export GROQ_API_KEY=gsk_...            # free — console.groq.com
 export GEMINI_API_KEY=AIzaSy...        # free — aistudio.google.com
 export ANTHROPIC_API_KEY=sk-ant-...    # paid — console.anthropic.com
 
-pip3 install requests                  # install HTTP library
+pip3 install requests flask flask-cors # install Python dependencies
 
 python3 compiler.py test.src           # run on sample program
 python3 compiler.py my_program.src     # run on your own file
@@ -53,11 +54,11 @@ python3 compiler.py my_program.src     # run on your own file
 
 ## Pipeline Stages
 
-### 1 — Flex Lexer (lexer.l)
+### 1 — Flex Lexer (backend/lexer.l)
 Converts raw source to a token stream. Tracks line numbers, handles
 unknown characters, and distinguishes keywords from identifiers.
 
-### 2 — Bison Parser (parser.y)
+### 2 — Bison Parser (backend/parser.y)
 Full grammar definition. Each rule emits a JSON node; the result is a
 single `{"type":"Program","body":[...]}` document written to stdout.
 
@@ -95,11 +96,11 @@ LABEL L_else_1:
 
 | Goal | File |
 |------|------|
-| New token (e.g. `++`) | `lexer.l` |
-| New statement (e.g. `break`) | `parser.y` |
-| New type rule | `compiler.py` → `TYPE_COMPAT` or `TypeChecker` |
-| Richer IR | `compiler.py` → `IRGenerator` |
-| Custom LLM analysis rules | `compiler.py` → `SYSTEM_PROMPT` |
+| New token (e.g. `++`) | `backend/lexer.l` |
+| New statement (e.g. `break`) | `backend/parser.y` |
+| New type rule | `backend/compiler.py` → `TYPE_COMPAT` or `TypeChecker` |
+| Richer IR | `backend/compiler.py` → `IRGenerator` |
+| Custom LLM analysis rules | `backend/compiler.py` → `SYSTEM_PROMPT` |
 
 ## Exit Codes
 

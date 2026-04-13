@@ -1,0 +1,27 @@
+.ast-viewer {
+  font-family: var(--font-mono); font-size: 13px; line-height: 1.6;
+}
+.ast-node { margin-bottom: 1px; }
+.ast-node-inner {
+  display: flex; align-items: flex-start; gap: 5px;
+  padding: 3px 8px; border-radius: var(--radius-sm);
+  cursor: pointer; transition: background 0.15s;
+}
+.ast-node-inner:hover { background: var(--bg-hover); }
+.ast-toggle {
+  width: 15px; flex-shrink: 0; font-size: 9px;
+  color: var(--text-muted); margin-top: 3px;
+  transition: transform 0.2s;
+}
+.ast-toggle.collapsed { transform: rotate(-90deg); }
+.ast-type { font-weight: 700; color: var(--accent-hover); }
+.ast-prop { color: var(--accent-3); }
+.ast-val  { color: var(--warning); }
+.ast-str  { color: var(--success); }
+.ast-val.null { color: var(--text-muted); font-style: italic; }
+.ast-inline { margin-left: 8px; }
+.ast-children {
+  margin-left: 18px; border-left: 1px solid var(--border-subtle);
+  padding-left: 6px;
+}
+.ast-child { padding: 1px 0; }

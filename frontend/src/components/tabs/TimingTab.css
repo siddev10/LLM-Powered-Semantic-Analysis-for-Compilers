@@ -1,0 +1,33 @@
+.timing-view {
+  display: flex; flex-direction: column; gap: 14px;
+}
+.timing-card {
+  background: var(--bg-elevated); border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md); padding: 14px 18px;
+  animation: slideUp 0.3s ease;
+}
+.timing-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 10px;
+}
+.timing-name { font-size: 13.5px; font-weight: 600; color: var(--text-primary); }
+.timing-val {
+  font-size: 13.5px; font-weight: 700; font-family: var(--font-mono);
+  color: var(--accent-hover);
+}
+.timing-bar-track {
+  height: 7px; background: var(--bg-active);
+  border-radius: 100px; overflow: hidden;
+}
+.timing-bar-fill {
+  height: 100%; border-radius: 100px; min-width: 4px;
+}
+.timing-total {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(168,85,247,0.08));
+  border: 1px solid rgba(99,102,241,0.18);
+  border-radius: var(--radius-md);
+}
+.timing-total .timing-name { font-size: 15px; }
+.timing-total .timing-val  { font-size: 17px; }

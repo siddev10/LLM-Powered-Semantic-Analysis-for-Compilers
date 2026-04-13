@@ -1,0 +1,93 @@
+/* ═══════════════════════════════════════════════════════════════════
+   App Layout
+   ═══════════════════════════════════════════════════════════════════ */
+
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  position: relative;
+}
+
+/* ── Background effects ─────────────────────────────────────────── */
+.bg-effects {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.bg-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(120px);
+  opacity: 0.10;
+  animation: orbFloat 25s ease-in-out infinite;
+}
+
+.bg-orb-1 {
+  width: 600px; height: 600px;
+  background: var(--accent);
+  top: -250px; right: -100px;
+}
+.bg-orb-2 {
+  width: 500px; height: 500px;
+  background: var(--accent-2);
+  bottom: -200px; left: -80px;
+  animation-delay: -8s;
+}
+.bg-orb-3 {
+  width: 350px; height: 350px;
+  background: var(--accent-3);
+  top: 45%; left: 48%;
+  opacity: 0.05;
+  animation-delay: -16s;
+}
+
+.bg-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(99, 102, 241, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(99, 102, 241, 0.025) 1px, transparent 1px);
+  background-size: 64px 64px;
+}
+
+/* ── IDE Layout ─────────────────────────────────────────────────── */
+.ide-layout {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 280px;
+}
+
+.panel-editor {
+  border-right: 1px solid var(--border-subtle);
+}
+
+.panel-output {
+  flex: 1;
+}
+
+.panel-resizer {
+  width: 5px;
+  cursor: col-resize;
+  background: transparent;
+  position: relative;
+  z-index: 50;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+.panel-resizer:hover {
+  background: var(--accent);
+}

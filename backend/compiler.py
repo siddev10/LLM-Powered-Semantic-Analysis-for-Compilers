@@ -62,6 +62,14 @@ def _http(url, headers, payload, timeout=60, retries=2):
             else:
                 return json.dumps({"_err": str(e)})
 
+def _groq_error_result(msg):
+    """Return a well-formed analysis JSON for Groq errors."""
+    return json.dumps({
+        "semantic_errors":[], "logic_warnings":[], "code_quality":[],
+        "optimisations":[], "verdict":"UNKNOWN",
+        "summary": f"Groq API error: {msg}"
+    })
+
 def _call_groq(prompt, system, key):
     msgs = []
     if system: msgs.append({"role":"system","content":system})
@@ -75,10 +83,16 @@ def _call_groq(prompt, system, key):
         {"model":"llama-3.3-70b-versatile","messages":msgs,"max_tokens":1500,"temperature":0.1})
     try:
         d = json.loads(raw)
-        if "_err" in d: return json.dumps({"semantic_errors":[],"logic_warnings":[],"code_quality":[],"optimisations":[],"verdict":"UNKNOWN","summary":d["_err"]})
+        # Our own HTTP helper error
+        if "_err" in d:
+            return _groq_error_result(d["_err"])
+        # Groq API error response (e.g. invalid key, rate limit, model not found)
+        if "error" in d:
+            err_msg = d["error"].get("message", str(d["error"])) if isinstance(d["error"], dict) else str(d["error"])
+            return _groq_error_result(err_msg)
         return d["choices"][0]["message"]["content"]
     except Exception as e:
-        return json.dumps({"_err":str(e)})
+        return _groq_error_result(str(e))
 
 def _call_gemini(prompt, system, key):
     # Try models in order — free tier availability varies by region
@@ -141,7 +155,16 @@ def _call_claude(prompt, system, key):
 # ── 1. Flex/Bison front end ────────────────────────────────────────
 
 def run_frontend(source, binary="./compiler_bin"):
-    result = subprocess.run([binary], input=source, capture_output=True, text=True)
+    # On Windows, the binary is a Linux ELF — run via WSL
+    if sys.platform == "win32":
+        import pathlib
+        # Convert Windows path to WSL path
+        win_path = pathlib.Path(binary).resolve()
+        wsl_path = "/mnt/" + win_path.drive[0].lower() + win_path.as_posix()[2:]
+        cmd = ["wsl", wsl_path]
+    else:
+        cmd = [binary]
+    result = subprocess.run(cmd, input=source, capture_output=True, text=True)
     stderr, stdout = result.stderr.strip(), result.stdout.strip()
     if not stdout:
         return {"_fe_error": True, "msg": stderr or "no output from parser"}
@@ -315,6 +338,12 @@ def extract_json(raw):
         except: pass
     return None
 
+def _valid_llm_result(result):
+    """Check that a parsed JSON object has the expected analysis schema."""
+    return (isinstance(result, dict)
+            and "verdict" in result
+            and isinstance(result.get("semantic_errors"), list))
+
 def llm_analyse(ast, type_errors, type_warnings):
     if os.environ.get("GROQ_API_KEY"):        backend = "Groq  (llama-3.3-70b) — FREE"
     elif os.environ.get("GEMINI_API_KEY"):    backend = "Google Gemini 1.5 Flash — FREE"
@@ -332,9 +361,16 @@ Perform deep semantic analysis. Respond ONLY with the JSON object."""
 
     raw = call_llm(prompt, SYSTEM_PROMPT)
     result = extract_json(raw)
-    if result: return result
+    if result and _valid_llm_result(result):
+        return result
+    # If we got JSON but not the right shape, extract error info
+    err_detail = ""
+    if isinstance(result, dict):
+        err_detail = result.get("summary", result.get("_err", ""))
+    if not err_detail:
+        err_detail = raw[:300] if raw else "Empty LLM response"
     return {"semantic_errors":[],"logic_warnings":[],"code_quality":[],"optimisations":[],
-            "verdict":"UNKNOWN","summary":f"Could not parse LLM response: {raw[:200]}"}
+            "verdict":"UNKNOWN","summary":f"LLM analysis failed: {err_detail}"}
 
 
 # ── 4. IR generator  (BUG FIXED — pass `out` list by reference) ───

@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semantic Compiler IDE — LLM-Powered Analysis</title>
+    <meta name="description" content="A web-based IDE for the LLM-Powered Semantic Compiler with live AST visualization, type checking, and AI-driven code analysis.">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- CodeMirror 5 CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-darker.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/hint/show-hint.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/foldgutter.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/clike/clike.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/selection/active-line.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/foldcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/foldgutter.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/brace-fold.min.js"></script>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- ── Background Effects ──────────────────────────────────── -->
+    <div class="bg-effects">
+        <div class="bg-orb bg-orb-1"></div>
+        <div class="bg-orb bg-orb-2"></div>
+        <div class="bg-orb bg-orb-3"></div>
+        <div class="bg-grid"></div>
+    </div>
+
+    <!-- ── Header ──────────────────────────────────────────────── -->
+    <header id="app-header">
+        <div class="header-left">
+            <div class="logo">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 32 32" fill="none">
+                        <path d="M16 2L28 9V23L16 30L4 23V9L16 2Z" stroke="url(#logo-grad)" stroke-width="2" fill="none"/>
+                        <path d="M16 8L22 11.5V18.5L16 22L10 18.5V11.5L16 8Z" fill="url(#logo-grad)" opacity="0.3"/>
+                        <path d="M16 11L19 13V17L16 19L13 17V13L16 11Z" fill="url(#logo-grad)"/>
+                        <defs>
+                            <linearGradient id="logo-grad" x1="4" y1="2" x2="28" y2="30">
+                                <stop offset="0%" stop-color="#6366f1"/>
+                                <stop offset="100%" stop-color="#a855f7"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <div class="logo-text">
+                    <h1>Semantic Compiler</h1>
+                    <span class="logo-subtitle">LLM-Powered · Flex + Bison + Python</span>
+                </div>
+            </div>
+        </div>
+        <div class="header-center">
+            <div class="pipeline-mini" id="pipeline-mini">
+                <div class="pipe-stage" data-stage="frontend" title="Lexer + Parser">
+                    <span class="pipe-icon">⚡</span>
+                    <span class="pipe-label">Lex/Parse</span>
+                </div>
+                <div class="pipe-arrow">→</div>
+                <div class="pipe-stage" data-stage="typechecker" title="Type Checker">
+                    <span class="pipe-icon">🔍</span>
+                    <span class="pipe-label">Types</span>
+                </div>
+                <div class="pipe-arrow">→</div>
+                <div class="pipe-stage" data-stage="llm" title="LLM Analysis">
+                    <span class="pipe-icon">🤖</span>
+                    <span class="pipe-label">LLM</span>
+                </div>
+                <div class="pipe-arrow">→</div>
+                <div class="pipe-stage" data-stage="ir" title="IR Generator">
+                    <span class="pipe-icon">⚙️</span>
+                    <span class="pipe-label">IR</span>
+                </div>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="backend-badge" id="backend-badge" title="LLM Backend">
+                <span class="badge-dot"></span>
+                <span class="badge-text">Checking...</span>
+            </div>
+            <button class="btn-icon" id="btn-settings" title="Settings">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 008.4 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 8.4a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9c.26.604.852.997 1.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- ── Toolbar ─────────────────────────────────────────────── -->
+    <div class="toolbar" id="toolbar">
+        <div class="toolbar-left">
+            <div class="dropdown" id="samples-dropdown">
+                <button class="btn btn-secondary" id="btn-samples">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
+                    Sample Programs
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" class="chevron"><path d="M6 9l6 6 6-6"/></svg>
+                </button>
+                <div class="dropdown-menu" id="samples-menu"></div>
+            </div>
+        </div>
+        <div class="toolbar-center">
+            <button class="btn btn-primary btn-compile" id="btn-compile">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                Compile & Analyze
+                <span class="shortcut">Ctrl+Enter</span>
+            </button>
+            <label class="toggle-label" id="toggle-llm-label">
+                <input type="checkbox" id="toggle-llm" checked>
+                <span class="toggle-slider"></span>
+                <span class="toggle-text">LLM Analysis</span>
+            </label>
+        </div>
+        <div class="toolbar-right">
+            <button class="btn btn-ghost" id="btn-clear" title="Clear output">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                Clear
+            </button>
+            <button class="btn btn-ghost" id="btn-fullscreen" title="Toggle fullscreen editor">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- ── Main IDE Layout ─────────────────────────────────────── -->
+    <main class="ide-layout" id="ide-layout">
+        <!-- Left: Code Editor -->
+        <div class="panel panel-editor" id="panel-editor">
+            <div class="panel-header">
+                <div class="panel-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                    <span>Source Code</span>
+                    <span class="file-badge" id="file-badge">untitled.src</span>
+                </div>
+                <div class="panel-actions">
+                    <span class="char-count" id="char-count">0 chars</span>
+                </div>
+            </div>
+            <div class="editor-wrap" id="editor-wrap">
+                <textarea id="code-editor"></textarea>
+            </div>
+        </div>
+
+        <!-- Resizer -->
+        <div class="panel-resizer" id="panel-resizer"></div>
+
+        <!-- Right: Output Panels -->
+        <div class="panel panel-output" id="panel-output">
+            <!-- Output Tabs -->
+            <div class="output-tabs" id="output-tabs">
+                <button class="tab active" data-tab="ast" id="tab-ast">
+                    <span class="tab-icon">🌳</span> AST
+                    <span class="tab-badge" id="badge-ast"></span>
+                </button>
+                <button class="tab" data-tab="types" id="tab-types">
+                    <span class="tab-icon">🔍</span> Types
+                    <span class="tab-badge" id="badge-types"></span>
+                </button>
+                <button class="tab" data-tab="llm" id="tab-llm">
+                    <span class="tab-icon">🤖</span> LLM
+                    <span class="tab-badge" id="badge-llm"></span>
+                </button>
+                <button class="tab" data-tab="ir" id="tab-ir">
+                    <span class="tab-icon">⚙️</span> IR Code
+                    <span class="tab-badge" id="badge-ir"></span>
+                </button>
+                <button class="tab" data-tab="timing" id="tab-timing">
+                    <span class="tab-icon">⏱️</span> Timing
+                </button>
+            </div>
+
+            <!-- Tab Content Panels -->
+            <div class="tab-content active" id="content-ast">
+                <div class="empty-state" id="empty-ast">
+                    <div class="empty-icon">🌳</div>
+                    <h3>Abstract Syntax Tree</h3>
+                    <p>Write code and click <strong>Compile & Analyze</strong> to see the AST</p>
+                </div>
+                <div class="ast-view" id="ast-view" style="display:none"></div>
+            </div>
+
+            <div class="tab-content" id="content-types">
+                <div class="empty-state" id="empty-types">
+                    <div class="empty-icon">🔍</div>
+                    <h3>Type Checker</h3>
+                    <p>Type errors and warnings will appear here</p>
+                </div>
+                <div class="type-results" id="type-results" style="display:none"></div>
+            </div>
+
+            <div class="tab-content" id="content-llm">
+                <div class="empty-state" id="empty-llm">
+                    <div class="empty-icon">🤖</div>
+                    <h3>LLM Semantic Analysis</h3>
+                    <p>AI-powered deep code analysis results</p>
+                </div>
+                <div class="llm-results" id="llm-results" style="display:none"></div>
+            </div>
+
+            <div class="tab-content" id="content-ir">
+                <div class="empty-state" id="empty-ir">
+                    <div class="empty-icon">⚙️</div>
+                    <h3>Intermediate Representation</h3>
+                    <p>3-address IR code will be generated here</p>
+                </div>
+                <div class="ir-view" id="ir-view" style="display:none"></div>
+            </div>
+
+            <div class="tab-content" id="content-timing">
+                <div class="empty-state" id="empty-timing">
+                    <div class="empty-icon">⏱️</div>
+                    <h3>Pipeline Timing</h3>
+                    <p>Execution time for each compiler stage</p>
+                </div>
+                <div class="timing-view" id="timing-view" style="display:none"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ── Status Bar ──────────────────────────────────────────── -->
+    <footer class="status-bar" id="status-bar">
+        <div class="status-left">
+            <span class="status-item" id="status-verdict">
+                <span class="status-dot"></span>
+                Ready
+            </span>
+        </div>
+        <div class="status-center">
+            <span class="status-item" id="status-message"></span>
+        </div>
+        <div class="status-right">
+            <span class="status-item" id="status-line">Ln 1, Col 1</span>
+            <span class="status-item" id="status-lang">src</span>
+        </div>
+    </footer>
+
+    <!-- ── Settings Modal ──────────────────────────────────────── -->
+    <div class="modal-overlay" id="modal-settings" style="display:none">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Settings</h2>
+                <button class="btn-icon modal-close" id="btn-close-settings">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="settings-section">
+                    <h3>LLM API Keys</h3>
+                    <p class="settings-desc">Set an API key to enable LLM semantic analysis. Groq is free.</p>
+                    <div class="form-group">
+                        <label for="input-groq-key">Groq API Key <span class="tag tag-free">FREE</span></label>
+                        <div class="input-with-btn">
+                            <input type="password" id="input-groq-key" placeholder="gsk_..." autocomplete="off">
+                            <button class="btn btn-sm" onclick="setApiKey('groq')">Set</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="input-gemini-key">Gemini API Key <span class="tag tag-free">FREE</span></label>
+                        <div class="input-with-btn">
+                            <input type="password" id="input-gemini-key" placeholder="AIzaSy..." autocomplete="off">
+                            <button class="btn btn-sm" onclick="setApiKey('gemini')">Set</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="input-claude-key">Anthropic API Key <span class="tag tag-paid">PAID</span></label>
+                        <div class="input-with-btn">
+                            <input type="password" id="input-claude-key" placeholder="sk-ant-..." autocomplete="off">
+                            <button class="btn btn-sm" onclick="setApiKey('claude')">Set</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="settings-section">
+                    <h3>Keyboard Shortcuts</h3>
+                    <div class="shortcut-list">
+                        <div class="shortcut-item"><kbd>Ctrl</kbd>+<kbd>Enter</kbd><span>Compile & Analyze</span></div>
+                        <div class="shortcut-item"><kbd>Ctrl</kbd>+<kbd>S</kbd><span>Save to localStorage</span></div>
+                        <div class="shortcut-item"><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>F</kbd><span>Toggle fullscreen</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Loading overlay ─────────────────────────────────────── -->
+    <div class="compile-overlay" id="compile-overlay" style="display:none">
+        <div class="compile-spinner">
+            <div class="spinner-ring"></div>
+            <div class="spinner-text" id="spinner-text">Compiling...</div>
+            <div class="spinner-stage" id="spinner-stage"></div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
